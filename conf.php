@@ -1,4 +1,9 @@
 <?php
+// Start session
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
 // Site timezone
 $conf['site_timezone'] = 'Africa/Nairobi';
 
@@ -24,3 +29,10 @@ $conf['smtp_user'] = 'your_email@gmail.com'; // Replace with your actual SMTP em
 $conf['smtp_pass'] = 'yourpasswordhere'; // Replace with your actual SMTP password
 $conf['smtp_port'] = 465;
 $conf['smtp_secure'] = 'ssl';
+
+
+// Set password length
+$conf['min_password_length'] = 8;
+
+// Set valid email domain (for example: 'icsbacademy.com')
+$conf['valid_email_domain'] = ['icsbacademy.com', 'yahoo.com', 'gmail.com', 'outlook.com', 'hotmail.com', 'strathmore.edu'];

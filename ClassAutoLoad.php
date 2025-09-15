@@ -1,7 +1,6 @@
 <?php
-
-require 'Plugins/PHPMailer/vendor/autoload.php';
 require 'conf.php';
+
 $directories = ['Layouts', 'Forms', 'Global'];
 
 spl_autoload_register(function ($class_name) use ($directories) {

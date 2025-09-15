@@ -2,6 +2,7 @@
 class forms{
     public function signup(){
 ?>
+<h2>Sign Up Here</h2>
 <form>
   <div class="mb-3">
     <label for="exampleInputName1" class="form-label">Name</label>
@@ -22,16 +23,14 @@ class forms{
 
 <?php
     }
-
     private function submit_button($value, $name){
 ?>
         <button type='submit' class="btn btn-primary" name='<?php echo $name; ?>'><?php echo $value; ?></button>
 <?php
     }
-
     public function signin(){
 ?>
-
+<h2>Sign In Here</h2>
 <form>
   <div class="mb-3">
     <label for="exampleInputEmail1" class="form-label">Email address</label>

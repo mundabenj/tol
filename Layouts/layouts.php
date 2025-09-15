@@ -10,9 +10,8 @@ class Layouts {
       <meta name="description" content="">
       <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
       <meta name="generator" content="Astro v5.13.2">
-      <title>Jumbotron example · Bootstrap v5.3</title>
-      <link href="https://getbootstrap.com/docs/5.3/dist/css/bootstrap.min.css" rel="stylesheet">
-      <meta name="theme-color" content="#712cf9">
+      <title><?php echo $conf['site_name']; ?></title>
+      <link href="<?php echo $conf['site_url']; ?>/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
    </head>
 <?php
     }
@@ -25,13 +24,12 @@ class Layouts {
             <header class="pb-3 mb-4 border-bottom">
  <nav class="navbar navbar-expand-lg navbar-dark bg-dark" aria-label="Fifth navbar example">
             <div class="container-fluid">
-               <a class="navbar-brand" href="#">Expand at lg</a> <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample05" aria-controls="navbarsExample05" aria-expanded="false" aria-label="Toggle navigation"> <span class="navbar-toggler-icon"></span> </button> 
+               <a class="navbar-brand" href="./"><?php echo $conf['site_name']; ?></a> <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample05" aria-controls="navbarsExample05" aria-expanded="false" aria-label="Toggle navigation"> <span class="navbar-toggler-icon"></span> </button> 
                <div class="collapse navbar-collapse" id="navbarsExample05">
                   <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                     <li class="nav-item"> <a class="nav-link active" aria-current="page" href="./">Home</a> </li>
-                     <li class="nav-item"> <a class="nav-link" href="signup.php">Sign Up</a> </li>
-                     <li class="nav-item"> <a class="nav-link" href="signin.php">Sign In</a> </li>
-
+                     <li class="nav-item"> <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'index.php') ? 'active' : ''; ?>" aria-current="page" href="./">Home</a> </li>
+                     <li class="nav-item"> <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'signup.php') ? 'active' : ''; ?>" href="signup.php">Sign Up</a> </li>
+                     <li class="nav-item"> <a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'signin.php') ? 'active' : ''; ?>" href="signin.php">Sign In</a> </li>
                   </ul>
                   <form role="search"> <input class="form-control" type="search" placeholder="Search" aria-label="Search"> </form>
                </div>
@@ -43,11 +41,11 @@ class Layouts {
 
     public function banner($conf) {
         ?>
-            <div class="p-5 mb-4 bg-body-tertiary rounded-3">
-               <div class="container-fluid py-5">
-                  <h1 class="display-5 fw-bold">Custom jumbotron</h1>
-                  <p class="col-md-8 fs-4">Using a series of utilities, you can create this jumbotron, just like the one in previous versions of Bootstrap. Check out the examples below for how you can remix and restyle it to your liking.</p>
-                  <button class="btn btn-primary btn-lg" type="button">Example button</button> 
+            <div class="p-1 mb-4 bg-body-tertiary rounded-3">
+               <div class="container-fluid py-1">
+                  <h1 class="display-5 fw-bold">Welcome to <?php echo $conf['site_name']; ?></h1>
+                  <p class="col-md-8 fs-4">Using a series of utilities, you can create this jumbotron, just like the one in previous versions of Bootstrap.</p>
+                  <button class="btn btn-primary btn-lg" type="button">Join Now</button> 
                </div>
             </div>
         <?php
@@ -77,8 +75,8 @@ class Layouts {
         ?>
                 <div class="row align-items-md-stretch">
                <div class="col-md-6">
-                  <div class="h-100 p-5 text-bg-light rounded-3">
-<?php if($_SERVER['PHP_SELF'] == '/tol/signup.php') { $ObjForm->signup(); }else{ $ObjForm->signin();} ?>
+                  <div class="h-100 p-5 text-bg-dark rounded-3">
+<?php if(basename($_SERVER['PHP_SELF']) == 'signup.php') { $ObjForm->signup(); }else{ $ObjForm->signin();} ?>
                   </div>
                </div>
                <div class="col-md-6">
@@ -100,7 +98,7 @@ class Layouts {
             </footer>
          </div>
       </main>
-      <script src="https://getbootstrap.com/docs/5.3/dist/js/bootstrap.bundle.min.js" class="astro-vvvwv3sm"></script>
+      <script src="<?php echo $conf['site_url']; ?>/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
    </body>
 </html>
 

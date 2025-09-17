@@ -1,6 +1,15 @@
 <?php
 class auth{
-    public function signup($conf, $ObjFncs){
+
+    // Method to bind email template variables
+    public function bindEmailTemplate($template, $variables) {
+        foreach ($variables as $key => $value) {
+            $template = str_replace("{{" . $key . "}}", $value, $template);
+        }
+        return $template;
+    }
+
+    public function signup($conf, $ObjFncs, $lang, $ObjSendMail){
         if($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['signup'])){
 
         $errors = array(); // Initialize an array to hold error messages
@@ -33,9 +42,28 @@ class auth{
 
             // If there are errors, display them
             if(!count($errors)){
+
+                // Bind email template variables
+                $email_variables = [
+                    'site_name' => $conf['site_name'],
+                    'fullname' => $fullname,
+                    'activation_code' => $conf['reg_ver_code'] // This should be a real activation code
+                ];
+
+                $mailCnt = [
+                    'name_from' => $conf['site_name'],
+                    'mail_from' => $conf['admin_email'],
+                    'name_to' => $fullname,
+                    'mail_to' => $email,
+                    'subject' => $this->bindEmailTemplate($lang["ver_reg_subj"], $email_variables),
+                    'body' => nl2br($this->bindEmailTemplate($lang["ver_reg_body"], $email_variables))
+                ];
+
+                $ObjSendMail->Send_Mail($conf, $mailCnt);
+
                 // No errors, proceed with further processing (e.g., save to database)
                 // die($fullname . ' ' . $email . ' ' . $password);
-                $ObjFncs->setMsg('msg', 'Signup successful! You can now log in.', 'success');
+                $ObjFncs->setMsg('msg', 'Signup successful! Please check your email for activation instructions.', 'success');
 
                 // Clear session data after successful signup
                 unset($_SESSION['fullname']);

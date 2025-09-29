@@ -240,7 +240,7 @@ class dbConnection{
     // Alter table to add foreign key constraints
     public function addForeignKey($table, $column, $referencedTable, $referencedColumn) {
         $sql = "ALTER TABLE `$table`
-                ADD CONSTRAINT fk_{$table}_{$column} FOREIGN KEY ($column) REFERENCES $referencedTable($referencedColumn) ON DELETE RESTRICT ON UPDATE CASCADE";
+                ADD CONSTRAINT fk_{$table}_{$column} FOREIGN KEY ($column) REFERENCES $referencedTable($referencedColumn) ON DELETE NO ACTION ON UPDATE NO ACTION";
         return $this->extracted($sql);
     }
 

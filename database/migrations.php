@@ -43,7 +43,6 @@ if ($drop_roles_table === TRUE) {
 $create_roles_table = $SQL->createTable('roles', [
     'roleId' => 'TINYINT(1) AUTO_INCREMENT PRIMARY KEY',
     'roleName' => 'VARCHAR(50) NOT NULL',
-    'roleDesc' => 'VARCHAR(255) DEFAULT NULL',
     'created' => 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
     'updated' => 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
 ]);

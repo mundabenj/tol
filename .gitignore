@@ -1,0 +1,12 @@
+# Ignore all .log files
+# *.log
+
+# Ignore the node_modules folder
+# node_modules/
+
+# Ignore a specific file
+conf.php
+
+# Ignore all files in a folder except one
+# temp/*
+# !temp/keep.txt

@@ -1,14 +1,17 @@
 <?php
-// Subject of the email sent to user when they register an account
-$lang["ver_reg_subj"] = "Account Activation on {{site_name}}";
 
-// Body of the email sent to user when they register an account
-$lang["ver_reg_body"] = "
+// email subject for registration verification
+$lang['reg_ver_subject'] = "Account Activation Code - {{site_name}}";
+
+// email body for registration verification
+$lang['reg_ver_body'] = "
 Hello {{fullname}},
-You have requested an account on <strong>{{site_name}}</strong>.
+
+You requested an account on <strong>{{site_name}}</strong>.
 Your activation code is:
-<h1>{{activation_code}}</h1>
+<h2>{{activation_code}}</h2>
+The verification code is valid for {{code_expiry_string}}.
+If you did not request this, please ignore this email.
 Regards,
-Systems Admin
-{{site_name}}
+{{mail_from_name}}
 ";

@@ -1,16 +1,19 @@
 <?php
-require 'ClassAutoLoad.php';
+// Example usage of dbConnection class
+require_once 'classAutoLoad.php';
 
-$mailCnt = [
-    'name_from' => 'sender name',
-    'mail_from' => 'sender@yahoo.com',
-    'name_to' => 'receiver name',
-    'mail_to' => 'recipient@gmail.com',
-    'subject' => 'Hello From ICS B',
-    'body' => 'Welcome to ICS B! <br> This is a new semester. Let\'s have fun together.'
+// Create table values
+$insert_data = [
+    'fullname' => 'Alex Okama',
+    'email' => 'alex@example.com'
 ];
 
-// $ObjSendMail->Send_Mail($conf, $mailCnt);
+//call the insert method
+$create_user = $SQL->insert('users', $insert_data);
 
-
-print rand(100000, 999999);
+// Check if the user was created successfully
+if ($create_user === TRUE) {
+    echo "User created successfully.";
+} else {
+    echo "Error creating user.";
+}

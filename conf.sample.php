@@ -1,3 +1,5 @@
+Class Demo
+
 <?php
 // Start the session
 if (session_status() == PHP_SESSION_NONE) {
@@ -14,15 +16,15 @@ $base_url = $protocol . $_SERVER['HTTP_HOST'] . '/';
 // Database Configuration
 $conf['db_type'] = 'PDO'; // Options: 'MySQLi' or 'PDO'
 $conf['db_host'] = 'localhost'; // Use 'localhost' for local development
-$conf['db_user'] = 'root'; // Use 'root' for local development
-$conf['db_pass'] = 'alex';  // Use '' for local development
-$conf['db_name'] = 'tol'; // Database name
+$conf['db_user'] = 'db_user'; // Use 'root' for local development
+$conf['db_pass'] = 'db_pass';  // Use '' for local development
+$conf['db_name'] = 'db_name'; // Database name
 $conf['db_port'] = '3306'; // Database port
 
 // Site Information
-$conf['site_name'] = 'ICS B Academy';
-$conf['site_initials'] = 'ics';
-$conf['site_domain'] = 'icsbacademy.com';
+$conf['site_name'] = 'PRO Community';
+$conf['site_initials'] = 'pro';
+$conf['site_domain'] = 'procommunity.com';
 $conf['site_slogan'] = 'Connecting Minds, Building Futures';
 $conf['site_url'] = $base_url . $conf['db_name'] . '/';
 $conf['site_title'] = $conf['site_name'] . ' - ' . $conf['site_slogan'];

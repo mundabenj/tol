@@ -12,10 +12,10 @@
  * $db = new dbConnection('MySQLi', 'localhost', 'dbname', 'user', 'pass', 3306);
  * or
  * $db = new dbConnection('PDO', 'localhost', 'dbname', 'user', 'pass', 3306);
- ******************************************************************************************/
+******************************************************************************************/
 class dbConnection{
     //constructor creation
-
+    
     private $connection;
     private $db_type;
     private $db_host;
@@ -24,8 +24,9 @@ class dbConnection{
     private $db_pass;
     private $db_port;
     private $posted_values;
-
-    public function __construct($DB_TYPE, $DB_HOST, $DB_NAME, $DB_USER, $DB_PASS,$DB_PORT) {
+    
+    // * $db = new dbConnection('PDO', 'localhost', 'dbname', 'user', 'pass', 3306);
+    public function __construct($DB_TYPE, $DB_HOST, $DB_NAME, $DB_USER, $DB_PASS, $DB_PORT) {
         $this->db_type      = $DB_TYPE;
         $this->db_host      = $DB_HOST;
         $this->db_name      = $DB_NAME;
@@ -40,7 +41,7 @@ class dbConnection{
                 if($DB_PORT<>Null){
                     $DB_HOST.=":".$DB_PORT;
                 }
-                $this->connection = new mysqli($DB_HOST,$DB_USER,$DB_PASS,$DB_NAME,$DB_PORT);
+                $this->connection = new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME, $DB_PORT);
                 if ($this->connection->connect_error) { return "Connection failed: " . $this->connection->connect_error; }else{
                     // print "Connected successfully with ".$DB_TYPE;
                 }
@@ -63,7 +64,7 @@ class dbConnection{
     /******************************************************************************************
     Close Database Connection
      ******************************************************************************************/
-    public function close() {
+    public function closeConnection() {
         switch ($this->db_type) {
             case 'MySQLi':
                 if ($this->connection instanceof mysqli) {
@@ -218,7 +219,31 @@ class dbConnection{
 			return $this->connection->lastInsertId();
 		break;
 		}
-	}	
+	}
+        // Method to drop a table (for testing purposes)
+    public function dropTable($tableName) {
+        $sql = "DROP TABLE IF EXISTS `$tableName`";
+        return $this->extracted($sql);
+    }
+
+    // Method to create a table (for testing purposes)
+    public function createTable($tableName, $columns) {
+        $columnsSql = [];
+        foreach ($columns as $columnName => $dataType) {
+            $columnsSql[] = "`$columnName` $dataType";
+        }
+        $columnsSqlString = implode(", ", $columnsSql);
+        $sql = "CREATE TABLE IF NOT EXISTS `$tableName` ($columnsSqlString)";
+        return $this->extracted($sql);
+    }
+
+    // Alter table to add foreign key constraints
+    public function addForeignKey($table, $column, $referencedTable, $referencedColumn) {
+        $sql = "ALTER TABLE `$table`
+                ADD CONSTRAINT fk_{$table}_{$column} FOREIGN KEY ($column) REFERENCES $referencedTable($referencedColumn) ON DELETE RESTRICT ON UPDATE CASCADE";
+        return $this->extracted($sql);
+    }
+
     /******************************************************************************************
     Extracted (tested)
      ******************************************************************************************/

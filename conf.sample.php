@@ -1,5 +1,3 @@
-Class Demo
-
 <?php
 // Start the session
 if (session_status() == PHP_SESSION_NONE) {

@@ -1,29 +1,32 @@
 <?php
-$servername = "localhost";
-$username = "root";
-$password = "alex";
-$dbname = "pro";
+require_once '../classAutoLoad.php';
 
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
-// Check connection
-if ($conn->connect_error) {
-  die("Connection failed: " . $conn->connect_error);
-}
-
-// sql to create table
-$sql = "CREATE TABLE MyGuests (
-id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-firstname VARCHAR(30) NOT NULL,
-lastname VARCHAR(30) NOT NULL,
-email VARCHAR(50),
-reg_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-)";
-
-if ($conn->query($sql) === TRUE) {
-  echo "Table MyGuests created successfully";
+// Drop table if it exists
+$drop_user_table = $SQL->dropTable('users');
+if ($drop_user_table === TRUE) {
+    echo "Table users dropped successfully.<br>";
 } else {
-  echo "Error creating table: " . $conn->error;
+    echo "Error dropping table: " . $SQL->getLastError() . "<br>";
 }
 
-$conn->close();
+// Create users table if it doesn't exist
+$create_user_table = $SQL->createTable('users', [
+    'userId' => 'BIGINT(10) UNSIGNED AUTO_INCREMENT PRIMARY KEY',
+    'fullname' => 'VARCHAR(50) NOT NULL',
+    'email' => 'VARCHAR(50) NOT NULL UNIQUE',
+    'password' => 'VARCHAR(60) NOT NULL',
+    'verify_code' => 'VARCHAR(10) DEFAULT NULL',
+    'code_expiry_time' => 'DATETIME DEFAULT NULL',
+    'status' => "ENUM('Active', 'Pending', 'Suspended', 'Deleted') DEFAULT 'Pending'",
+    'updated' => 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
+    'created' => 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
+    'genderId' => 'TINYINT(1) not null DEFAULT 1',
+    'roleId' => 'TINYINT(1) not null DEFAULT 1',
+]);
+
+// Check if the table was created successfully
+if ($create_user_table === TRUE) {
+    echo "Table users created successfully.<br>";
+} else {
+    echo "Error creating table: " . $SQL->getLastError() . "<br>";
+}

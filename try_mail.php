@@ -17,3 +17,4 @@ if ($create_user === TRUE) {
 } else {
     echo "Error creating user.";
 }
+// some more code...

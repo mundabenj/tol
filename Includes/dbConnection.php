@@ -220,6 +220,11 @@ class dbConnection{
 		break;
 		}
 	}
+
+	/******************************************************************************************
+	Method to execute custom migrations queries (tested) for DROP, CREATE, ALTER
+	******************************************************************************************/
+
         // Method to drop a table (for testing purposes)
     public function dropTable($tableName) {
         $sql = "DROP TABLE IF EXISTS `$tableName`";
@@ -238,9 +243,27 @@ class dbConnection{
     }
 
     // Alter table to add foreign key constraints
-    public function addForeignKey($table, $column, $referencedTable, $referencedColumn) {
-        $sql = "ALTER TABLE `$table`
-                ADD CONSTRAINT fk_{$table}_{$column} FOREIGN KEY ($column) REFERENCES $referencedTable($referencedColumn) ON DELETE NO ACTION ON UPDATE NO ACTION";
+    public function addConstraint($table, $ref_table, $column, $on_delete, $on_update) {
+        $constraint_name = "{$table}_{$column}_fk";
+        $sql = "ALTER TABLE `$table` ADD CONSTRAINT `$constraint_name` FOREIGN KEY (`$column`) REFERENCES $ref_table ON DELETE $on_delete ON UPDATE $on_update";
+        return $this->extracted($sql);
+    }
+
+    // Method to add columns to an existing table (for testing purposes)
+    public function addColumn($tableName, $columnName, $dataType) {
+        $sql = "ALTER TABLE `$tableName` ADD COLUMN `$columnName` $dataType";
+        return $this->extracted($sql);
+    }
+
+    // Method to remove columns from an existing table (for testing purposes)
+    public function removeColumn($tableName, $columnName) {
+        $sql = "ALTER TABLE `$tableName` DROP COLUMN `$columnName`";
+        return $this->extracted($sql);
+    }
+
+    // Method to rename columns in an existing table (for testing purposes)
+    public function renameColumn($tableName, $oldColumnName, $newColumnName, $dataType) {
+        $sql = "ALTER TABLE `$tableName` CHANGE `$oldColumnName` `$newColumnName` $dataType";
         return $this->extracted($sql);
     }
 

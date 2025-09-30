@@ -4,12 +4,23 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start(); // Start session if not already started
 }
 
+// Environment Configuration
+$conf['env'] = 'development'; // Change to 'production' in a live environment
+
 // Set timezone
 date_default_timezone_set('Africa/Nairobi'); // Change to your timezone
 
 // Set base URL dynamically
-$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
-$base_url = $protocol . $_SERVER['HTTP_HOST'] . '/';
+
+if($conf['env'] == 'production'){
+    error_reporting(0); // Disable error reporting in production
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+    $base_url = $protocol . $_SERVER['HTTP_HOST'] . '/';
+}else{
+    error_reporting(E_ALL); // Enable all error reporting in development
+    ini_set('display_errors', 1); // Display errors in development
+    $base_url = 'http://localhost/'; // Use this for local development
+}
 
 // Database Configuration
 $conf['db_type'] = 'PDO'; // Options: 'MySQLi' or 'PDO'

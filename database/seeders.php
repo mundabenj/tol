@@ -1,22 +1,25 @@
 <?php
-require_once '../classAutoLoad.php';
+// define database constants
+require_once '../ClassAutoLoad.php';
 
-// Clear existing data
-$SQL->truncate("`users`");
-$SQL->truncate("`roles`");
-$clear_genders = $SQL->truncate("`genders`");
-
-if ($clear_genders === TRUE) {
-    print "Genders table cleared successfully.";
-}else {
-    print "Error clearing genders table." . $clear_genders;
+// Seed roles data
+$insert_roles = $SQL->insert('roles', array('roleName' => 'Admin'));
+$insert_roles = $SQL->insert('roles', array('roleName' => 'User'));
+$insert_roles = $SQL->insert('roles', array('roleName' => 'Guest'));
+if ($insert_roles === TRUE) {
+    echo "Roles seeded successfully. | ";
+} else {
+    echo "Error seeding roles: " . $insert_roles;
 }
 
-// Seed roles table
-$insert_roles = $SQL->insert('roles', ['roleName' => 'Admin']);
-$insert_roles = $SQL->insert('roles', ['roleName' => 'User']);
+// Seed genders data
+$insert_genders = $SQL->insert('genders', array('genderName' => 'Male'));
+$insert_genders = $SQL->insert('genders', array('genderName' => 'Female'));
+$insert_genders = $SQL->insert('genders', array('genderName' => 'Other'));
 
-// Seed genders table
-$insert_genders = $SQL->insert('genders', ['genderName' => 'Male']);
-$insert_genders = $SQL->insert('genders', ['genderName' => 'Female']);
-$insert_genders = $SQL->insert('genders', ['genderName' => 'Other']);
+// Check if genders were seeded successfully
+if ($insert_genders === TRUE) {
+    echo "Genders seeded successfully. | ";
+} else {
+    echo "Error seeding genders: " . $insert_genders;
+}

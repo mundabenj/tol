@@ -36,3 +36,5 @@ $ObjFncs = new fncs();
 
 
 $ObjAuth->signup($conf, $ObjFncs, $lang, $ObjSendMail, $SQL);
+$ObjAuth->verify_code($conf, $ObjFncs, $lang, $ObjSendMail, $SQL);
+$ObjAuth->forgot_password($conf, $ObjFncs, $lang, $ObjSendMail, $SQL);

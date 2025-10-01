@@ -149,4 +149,134 @@ class auth{
             }
         }
 }
+public function verify_code($conf, $ObjFncs, $lang, $ObjSendMail, $SQL){
+    // code for verifying code
+    if(isset($_POST['verify_code'])){
+
+        // Initialize an array to hold errors
+        $errors = [];
+
+        // Retrieve and sanitize user inputs
+        $verification_code = $SQL->escape_values($_POST['verification_code']);
+
+        // Set validation rules
+        if (empty($verification_code)) {
+            $errors['code_error'] = "Verification code is required";
+        }
+
+        // Only allow digits in verification code
+        if (!preg_match("/^[0-9]*$/", $verification_code)) {
+            $errors['codeFormat_error'] = "Only digits are allowed in verification code";
+        }
+
+        // Check for errors
+        if (!count($errors)) {
+            // If no errors, proceed with verification logic
+
+            // Check if the verification code matches and is not expired
+            $current_time = date('Y-m-d H:i:s');
+            $check_code_res = $SQL->count_results(sprintf("SELECT verify_code FROM users WHERE verify_code = '%s' AND code_expiry_time >= '%s' LIMIT 1", $verification_code, $current_time));
+            if ($check_code_res > 0){
+                // Update user status to Active and clear the verification code and expiry time
+                $update_data = array('status'=>'Active', 'verify_code'=>NULL, 'code_expiry_time'=>date('Y-m-d H:i:s'));
+                $update_user = $SQL->update('users', $update_data, sprintf("verify_code = '%s'", $verification_code));
+
+                if($update_user === TRUE){
+                    $ObjFncs->setMsg('msg', 'Account verified successfully. You can now sign in.', 'success'); // Success message
+                    header("Location: signin.php"); // Redirect to signin page
+                    exit();
+                }else{
+                    die('Error: ' . $update_user);
+                    $ObjFncs->setMsg('msg', 'Error during account verification. Please try again later.', 'danger'); // Database error message
+                    header("Location: verify_code.php"); // Redirect to verification page
+                    exit();
+                }
+            }else{
+                $errors['invalidCode_error'] = "Invalid or expired verification code";
+                $ObjFncs->setMsg('errors', $errors, 'danger'); // Set errors in session
+                $ObjFncs->setMsg('msg', 'Please fix the errors below and try again.', 'danger'); // General error message
+                header("Location: verify_code.php"); // Redirect to verification page
+                exit();
+            }
+        }else{
+            $ObjFncs->setMsg('errors', $errors, 'danger'); // Set errors in session
+            $ObjFncs->setMsg('msg', 'Please fix the errors below and try again.', 'danger'); // General error message
+            header("Location: verify_code.php"); // Redirect to verification page
+            exit();
+        }
+    }
+}
+public function forgot_password($conf, $ObjFncs, $lang, $ObjSendMail, $SQL){
+    // code for forgot password
+    if(isset($_POST['send_code'])){
+
+        // Initialize an array to hold errors
+        $errors = [];
+
+        // Retrieve and sanitize user inputs
+        $email = $SQL->escape_values(strtolower($_POST['email']));
+
+        // Set validation rules
+        if (empty($email)) {
+            $errors['mail_error'] = "Email is required";
+        }
+
+        // Verify the email format
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors['mailFormat_error'] = "Invalid email format";
+        }
+
+        // Check if email exists in the database
+        $spot_email_res = $SQL->count_results(sprintf("SELECT email, fullname FROM users WHERE email = '%s' LIMIT 1", $email));
+        if ($spot_email_res == 0){
+            $errors['emailNotFound_error'] = "Email not found. Please check and try again.";
+        }
+
+        // Check for errors
+        if (!count($errors)) {
+            // If no errors, proceed with forgot password logic
+
+            // Set code expiry time format for the verification code
+            $code_expiry_time = date('Y-m-d H:i:s', strtotime('+' . $this->time_elapsed($conf['code_expiry_time'])));
+
+            // Update user record with new verification code and expiry time
+            $update_data = array('verify_code'=>$conf['verification_code'], 'code_expiry_time' => $code_expiry_time);
+            $update_user = $SQL->update('users', $update_data, sprintf("email = '%s'", $email));
+
+            if($update_user === TRUE){
+                // Fetch user's fullname for email personalization
+                $user_info = $SQL->select(sprintf("SELECT fullname FROM users WHERE email = '%s' LIMIT 1", $email));
+
+                $fullname = $user_info['fullname'];
+                
+                // Prepare variables to replace in email template
+                $variables = [
+                    'site_name' => $conf['site_name'],
+                    'fullname' => $fullname,
+                    'activation_code' => $conf['verification_code'],
+                    'mail_from_name' => $conf['mail_from_name'],
+                    'code_expiry_string' => $this->time_elapsed($conf['code_expiry_time'])
+                ];
+                // Prepare email content
+                $mailCnt = [
+                    'name_from' => $conf['mail_from_name'],
+                    'mail_from' => $conf['mail_from'],
+                    'name_to' => $fullname,
+                    'mail_to' => $email,
+                    'subject' => $this->bindEmailVars($lang['pwd_reset_subject'], $variables),
+                    'body' => nl2br($this->bindEmailVars($lang['pwd_reset_body'], $variables))
+                ];
+                // Send password reset email
+                $ObjSendMail->Send_Mail($conf, $mailCnt);
+                $ObjFncs->setMsg('msg', 'Password reset code sent. Please check your email.', 'success'); // Success message
+                header("Location: verify_code.php"); // Redirect to verification page
+            }
+        }else{
+            $ObjFncs->setMsg('errors', $errors, 'danger'); // Set errors in session
+            $ObjFncs->setMsg('msg', 'Please fix the errors below and try again.', 'danger'); // General error message
+            header("Location: forgot_password.php"); // Redirect to forgot password page
+            exit();
+        }
+    }
+}
 }

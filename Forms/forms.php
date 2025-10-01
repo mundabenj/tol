@@ -43,9 +43,12 @@ class forms {
     <form action="" method="post" autocomplete="off">
       <div class="mb-3">
         <label for="verification_code" class="form-label">Verification Code</label>
-        <input type="text" class="form-control" id="verification_code" name="verification_code" placeholder="Enter your verification code" required>
+        <input type="text" class="form-control" id="verification_code" name="verification_code" maxlength="6" placeholder="Enter your verification code" required>
+        <?php print (isset($err['invalidCode_error']) ? '<div id="codeHelp" class="alert alert-danger">'.$err['invalidCode_error'].'</div>' : ''); ?>
+        <?php print (isset($err['code_error']) ? '<div id="codeHelp" class="alert alert-danger">'.$err['code_error'].'</div>' : ''); ?>
+        <?php print (isset($err['codeFormat_error']) ? '<div id="codeHelp" class="alert alert-danger">'.$err['codeFormat_error'].'</div>' : ''); ?>
       </div>
-      <?php $this->submit_button("Verify Code", "verify_code"); ?> Can't verify? <a href="signin.php">Resend code</a>
+      <?php $this->submit_button("Verify Code", "verify_code"); ?> Can't verify? <a href="forgot_password.php">Resend code</a>
     </form>
     <?php
     }
@@ -58,13 +61,15 @@ class forms {
       <div class="mb-3">
         <label for="email" class="form-label">Email address</label>
         <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
+        <?php print (isset($err['mailFormat_error']) ? '<div id="emailHelp" class="alert alert-danger">'.$err['mailFormat_error'].'</div>' : ''); ?>
+        <?php print (isset($err['emailNotFound_error']) ? '<div id="emailHelp" class="alert alert-danger">'.$err['emailNotFound_error'].'</div>' : ''); ?>
       </div>
       <?php $this->submit_button("Send Code", "send_code"); ?> Dont have an account? <a href="signup.php">Sign up</a>
     </form>
     <?php
     }
 
-    public function signin() {
+    public function signin($conf, $ObjFncs) {
       $err = $ObjFncs->getMsg('errors'); print $ObjFncs->getMsg('msg');
         ?>
     <h1>Sign In</h1>

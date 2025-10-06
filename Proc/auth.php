@@ -341,16 +341,16 @@ public function change_password(){
                 $email = $user_info['email'];
                 $fullname = $user_info['fullname'];
                 if(isset($_SESSION['origin']) && $_SESSION['origin'] == 'forgot_password.php') {
-                $stored_hashed_password = $user_info['password'];
-                // If current password is provided, verify it
-                if ($current_password !== null && !password_verify($current_password, $stored_hashed_password)) {
-                    $errors['currentPassword_error'] = "Current password is incorrect";
-                    $ObjFncs->setMsg('errors', $errors, 'danger'); // Set errors in session
-                    $ObjFncs->setMsg('msg', 'Please fix the errors below and try again.', 'danger'); // General error message
-                    header("Location: change_password.php"); // Redirect to change password page
-                    exit();
+                    $stored_hashed_password = $user_info['password'];
+                    // If current password is provided, verify it
+                    if ($current_password !== null && !password_verify($current_password, $stored_hashed_password)) {
+                        $errors['currentPassword_error'] = "Current password is incorrect";
+                        $ObjFncs->setMsg('errors', $errors, 'danger'); // Set errors in session
+                        $ObjFncs->setMsg('msg', 'Please fix the errors below and try again.', 'danger'); // General error message
+                        header("Location: change_password.php"); // Redirect to change password page
+                        exit();
+                    }
                 }
-            }
                 // Hash the new password before storing it
                 $hashed_confirm_password = password_hash($confirm_password, PASSWORD_BCRYPT);
                 // Update user record with new password and clear verification code and expiry time

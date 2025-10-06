@@ -160,24 +160,30 @@ class dbConnection{
      ******************************************************************************************/
     public function update($table, $data, $where){
         $wer = '';
-        if(is_array($where)){
-            foreach ($where as $clave=>$value){
-                $wer.= $clave."='".$value."' AND ";
+        if (is_array($where)) {
+            foreach ($where as $clave => $value) {
+                $wer .= $clave . "='" . $value . "' AND ";
             }
-            $wer   = substr($wer, 0, -4);
+            $wer = substr($wer, 0, -5); // trim trailing ' AND '
             $where = $wer;
         }
+
         ksort($data);
-        $fieldDetails = NULL;
-        foreach ($data as $key => $values){
-            $fieldDetails .= "$key='$values',";
+        $fieldDetails = '';
+        foreach ($data as $key => $value) {
+            if (is_null($value)) {
+                $fieldDetails .= "$key=NULL,";
+            } else {
+                $fieldDetails .= "$key='" . addslashes($value) . "',";
+            }
         }
-        $fieldDetails = rtrim($fieldDetails,',');
-        if($where==NULL or $where==''){
-            $sth = "UPDATE $table SET $fieldDetails";
-        }else {
-            $sth = "UPDATE $table SET $fieldDetails WHERE $where";
+        $fieldDetails = rtrim($fieldDetails, ',');
+
+        $sth = "UPDATE $table SET $fieldDetails";
+        if (!empty($where)) {
+            $sth .= " WHERE $where";
         }
+
         return $this->extracted($sth);
     }
     /******************************************************************************************
@@ -224,6 +230,18 @@ class dbConnection{
 	/******************************************************************************************
 	Method to execute custom migrations queries (tested) for DROP, CREATE, ALTER
 	******************************************************************************************/
+
+    // Method to Disable Foreign Key Checks in MySQL
+    public function disableForeignKeyChecks() {
+        $sql = "SET FOREIGN_KEY_CHECKS = 0";
+        return $this->extracted($sql);
+    }
+
+    // Method to Enable Foreign Key Checks in MySQL
+    public function enableForeignKeyChecks() {
+        $sql = "SET FOREIGN_KEY_CHECKS = 1";
+        return $this->extracted($sql);
+    }
 
         // Method to drop a table (for testing purposes)
     public function dropTable($tableName) {

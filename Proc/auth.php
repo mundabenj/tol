@@ -31,7 +31,8 @@ class auth{
         return $ret ? implode(', ', $ret) : '0 seconds';
     }
 
-    public function signup($conf, $ObjFncs, $lang, $ObjSendMail, $SQL){
+    public function signup(){
+        global $conf, $ObjFncs, $lang, $ObjSendMail, $SQL;
         // code for signup
         if(isset($_POST['signup'])){
 
@@ -148,8 +149,10 @@ class auth{
                 exit();
             }
         }
-}
-public function verify_code($conf, $ObjFncs, $lang, $ObjSendMail, $SQL){
+    }
+
+public function verify_code(){
+    global $conf, $ObjFncs, $lang, $ObjSendMail, $SQL;
     // code for verifying code
     if(isset($_POST['verify_code'])){
 
@@ -158,6 +161,12 @@ public function verify_code($conf, $ObjFncs, $lang, $ObjSendMail, $SQL){
 
         // Retrieve and sanitize user inputs
         $verification_code = $SQL->escape_values($_POST['verification_code']);
+
+            if($_SESSION['origin'] == 'forgot_password.php'){
+                $redirection = "change_password.php"; // Redirect to change password page
+            }else{
+                $redirection = "signin.php"; // Redirect to signin page
+            }
 
         // Set validation rules
         if (empty($verification_code)) {
@@ -175,15 +184,21 @@ public function verify_code($conf, $ObjFncs, $lang, $ObjSendMail, $SQL){
 
             // Check if the verification code matches and is not expired
             $current_time = date('Y-m-d H:i:s');
-            $check_code_res = $SQL->count_results(sprintf("SELECT verify_code FROM users WHERE verify_code = '%s' AND code_expiry_time >= '%s' LIMIT 1", $verification_code, $current_time));
-            if ($check_code_res > 0){
+            $spot_user_query = sprintf("SELECT userId, verify_code FROM users WHERE verify_code = '%s' AND code_expiry_time >= '%s' LIMIT 1", $verification_code, $current_time);
+  
+            if ($SQL->count_results($spot_user_query) > 0){
+                $check_userId_res = $SQL->select($spot_user_query);
                 // Update user status to Active and clear the verification code and expiry time
-                $update_data = array('status'=>'Active', 'verify_code'=>NULL, 'code_expiry_time'=>date('Y-m-d H:i:s'));
+                $update_data = array('status' => 'Active', 'verify_code' => NULL, 'code_expiry_time' => NULL);
                 $update_user = $SQL->update('users', $update_data, sprintf("verify_code = '%s'", $verification_code));
 
                 if($update_user === TRUE){
+                    $_SESSION['change_userId_pass'] = $check_userId_res['userId'];
+                    // Clear session data after successful verification
+                   unset($_SESSION['origin']);
+                   unset($_SESSION['email']);
                     $ObjFncs->setMsg('msg', 'Account verified successfully. You can now sign in.', 'success'); // Success message
-                    header("Location: signin.php"); // Redirect to signin page
+                    header("Location: " . $redirection); // Redirect to signin or change password page
                     exit();
                 }else{
                     die('Error: ' . $update_user);
@@ -206,7 +221,8 @@ public function verify_code($conf, $ObjFncs, $lang, $ObjSendMail, $SQL){
         }
     }
 }
-public function forgot_password($conf, $ObjFncs, $lang, $ObjSendMail, $SQL){
+public function forgot_password(){
+    global $conf, $ObjFncs, $lang, $ObjSendMail, $SQL;
     // code for forgot password
     if(isset($_POST['send_code'])){
 
@@ -214,8 +230,8 @@ public function forgot_password($conf, $ObjFncs, $lang, $ObjSendMail, $SQL){
         $errors = [];
 
         // Retrieve and sanitize user inputs
-        $email = $SQL->escape_values(strtolower($_POST['email']));
-
+        $email = $_SESSION['email'] = $SQL->escape_values(strtolower($_POST['email']));
+        $origin = $_SESSION['origin'] = $SQL->escape_values($_POST['origin']);
         // Set validation rules
         if (empty($email)) {
             $errors['mail_error'] = "Email is required";
@@ -279,4 +295,188 @@ public function forgot_password($conf, $ObjFncs, $lang, $ObjSendMail, $SQL){
         }
     }
 }
+public function change_password(){
+    global $conf, $ObjFncs, $lang, $ObjSendMail, $SQL;
+    // code for changing password
+
+   if(isset($_POST['change_password'])){
+        // Initialize an array to hold errors
+        $errors = [];
+        // Retrieve and sanitize user inputs
+        $new_password = $_SESSION['new_password'] = $SQL->escape_values($_POST['new_password']);
+        $confirm_password = $_SESSION['confirm_password'] = $SQL->escape_values($_POST['confirm_password']);
+        // If coming from forgot_password.php, no need for current password check
+        if(isset($_SESSION['origin']) && $_SESSION['origin'] == 'forgot_password.php') {
+            $current_password = $SQL->escape_values($_POST['current_password']);
+            if ($current_password !== null && empty($current_password)) {
+                $errors['currentPassword_error'] = "Current password is required";
+            }
+        }
+        // Set validation rules
+        if (empty($new_password)) {
+            $errors['newPassword_error'] = "New password is required";
+        }
+        if (empty($confirm_password)) {
+            $errors['confirmPassword_error'] = "Please confirm your new password";
+        }
+        // Verify new password length
+        if (strlen($new_password) < $conf['min_password_length']) {
+            $errors['newPassword_error'] = "New password must be at least " . $conf['min_password_length'] . " characters long";
+        }
+        // Verify new password complexity (at least one letter and one number)
+        if (!preg_match("/^(?=.*[A-Za-z])(?=.*\d).+$/", $new_password)) {
+            $errors['newPassword_error'] = "New password must contain at least one letter and one number";
+        }
+        // Verify new password and confirm password match
+        if ($new_password !== $confirm_password) {
+            $errors['confirmPassword_error'] = "New password and confirm password do not match";
+        }
+
+        // Check for errors
+        if (!count($errors)) {
+            // If no errors, proceed with change password logic
+            // Fetch user's current password hash from the database
+            $user_info = $SQL->select(sprintf("SELECT password, email, fullname FROM users WHERE userId = '%d' LIMIT 1", $_SESSION['change_userId_pass']));
+            if ($user_info) {
+                $email = $user_info['email'];
+                $fullname = $user_info['fullname'];
+                if(isset($_SESSION['origin']) && $_SESSION['origin'] == 'forgot_password.php') {
+                $stored_hashed_password = $user_info['password'];
+                // If current password is provided, verify it
+                if ($current_password !== null && !password_verify($current_password, $stored_hashed_password)) {
+                    $errors['currentPassword_error'] = "Current password is incorrect";
+                    $ObjFncs->setMsg('errors', $errors, 'danger'); // Set errors in session
+                    $ObjFncs->setMsg('msg', 'Please fix the errors below and try again.', 'danger'); // General error message
+                    header("Location: change_password.php"); // Redirect to change password page
+                    exit();
+                }
+            }
+                // Hash the new password before storing it
+                $hashed_confirm_password = password_hash($confirm_password, PASSWORD_BCRYPT);
+                // Update user record with new password and clear verification code and expiry time
+                $update_data = array('password' => $hashed_confirm_password, 'verify_code' => NULL, 'code_expiry_time' => NULL);
+                $update_user = $SQL->update('users', $update_data, sprintf("userId = '%d'", $_SESSION['change_userId_pass']));
+                if($update_user === TRUE){
+                    // Prepare variables to replace in email template
+                    $variables = [
+                        'site_name' => $conf['site_name'],
+                        'fullname' => $fullname,
+                        'mail_from_name' => $conf['mail_from_name']
+                    ];
+                    // Prepare email content
+                    $mailCnt = [
+                        'name_from' => $conf['mail_from_name'],
+                        'mail_from' => $conf['mail_from'],
+                        'name_to' => $fullname,
+                        'mail_to' => $email,
+                        'subject' => $this->bindEmailVars($lang['pwd_change_subject'], $variables),
+                        'body' => nl2br($this->bindEmailVars($lang['pwd_change_body'], $variables))
+                    ];
+                    // Send password changed notification email
+                    $ObjSendMail->Send_Mail($conf, $mailCnt);
+                    // Clear session data after successful password change
+                    unset($_SESSION['email']);
+                    $ObjFncs->setMsg('msg', 'Your password has been changed successfully.', 'success');
+                    header("Location: signin.php");
+                    exit();
+                }
+            }
+        }else{
+                $ObjFncs->setMsg('errors', $errors, 'danger'); // Set errors in session
+                $ObjFncs->setMsg('msg', 'Please fix the errors below and try again.', 'danger'); // General error message
+                header("Location: change_password.php"); // Redirect to change password page
+                exit();
+            }
+        }
+    }
+public function signin(){
+    global $conf, $ObjFncs, $lang, $ObjSendMail, $SQL;
+    // code for signin
+    if(isset($_POST['signin'])){
+
+        // Initialize an array to hold errors
+        $errors = [];
+
+        // Retrieve and sanitize user inputs
+        $email = $_SESSION['email'] = $SQL->escape_values(strtolower($_POST['email']));
+        $password = $_SESSION['password'] = $SQL->escape_values($_POST['password']);
+
+        // Set validation rules
+        if (empty($email)) {
+            $errors['mail_error'] = "Email is required";
+        }
+        if (empty($password)) {
+            $errors['password_error'] = "Password is required";
+        }
+
+        // Verify the email format
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors['mailFormat_error'] = "Invalid email format";
+        }
+
+        // Check for errors
+        if (!count($errors)) {
+            // If no errors, proceed with signin logic
+
+            // Fetch user's record from the database
+            $user_info = $SQL->select(sprintf("SELECT userId, fullname, email, password, status FROM users WHERE email = '%s' LIMIT 1", $email));
+            if ($user_info) {
+                $stored_hashed_password = $user_info['password'];
+                $status = $user_info['status'];
+                // Verify the password
+                if (password_verify($password, $stored_hashed_password)) {
+                    if ($status === 'Active') {
+                        // Password is correct and account is active
+                        // Clear session data after successful signin
+                        unset($_SESSION['email']);
+                        unset($_SESSION['password']);
+                        // Set user session or cookie as needed
+                        $_SESSION['userId'] = $user_info['userId'];
+                        $_SESSION['fullname'] = $user_info['fullname'];
+                        $_SESSION['email'] = $user_info['email'];
+                        $_SESSION['consort'] = true; // Example session variable to indicate logged-in status
+                        $ObjFncs->setMsg('msg', 'Signin successful. Welcome back!', 'success'); // Success message
+                        header("Location: dashboard.php"); // Redirect to dashboard or home page
+                        exit();
+                    } else {
+                        $errors['accountStatus_error'] = "Your account is not active. Please verify your email or contact support.";
+                        $ObjFncs->setMsg('errors', $errors, 'danger'); // Set errors in session
+                        $ObjFncs->setMsg('msg', 'Please fix the errors below and try again.', 'danger'); // General error message
+                        header("Location: signin.php"); // Redirect to signin page
+                        exit();
+                    }
+                } else {
+                    $errors['invalidCredentials_error'] = "Invalid email or password";
+                    $ObjFncs->setMsg('errors', $errors, 'danger'); // Set errors in session
+                    $ObjFncs->setMsg('msg', 'Please fix the errors below and try again.', 'danger'); // General error message
+                    header("Location: signin.php"); // Redirect to signin page
+                    exit();
+                }
+            } else {
+                $errors['userNotFound_error'] = "User not found";
+                $ObjFncs->setMsg('errors', $errors, 'danger'); // Set errors in session
+                $ObjFncs->setMsg('msg', 'Please fix the errors below and try again.', 'danger'); // General error message
+                header("Location: signin.php"); // Redirect to signin page
+                exit();
+            }
+        }else{
+            $ObjFncs->setMsg('errors', $errors, 'danger'); // Set errors in session
+            $ObjFncs->setMsg('msg', 'Please fix the errors below and try again.', 'danger'); // General error message
+            header("Location: signin.php"); // Redirect to signin page
+            exit();
+        }
+    }
+}
+// Method to handle signout
+    public function signout(){
+        global $ObjFncs, $conf;
+        // Signout process
+        if(isset($_GET["signout"])){
+                // Clear all session data
+                unset($_SESSION["consort"]);
+                session_destroy();
+                header("Location: signin.php"); // Redirect to signin page
+                exit();
+        }
+    }
 }

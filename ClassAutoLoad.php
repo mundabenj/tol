@@ -1,5 +1,4 @@
 <?php
-
 // Check if configuration file exists
 if (!file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'conf.php')) {
     die('Configuration file not found. Please create conf.php from conf.sample.php and configure it.');
@@ -8,7 +7,7 @@ if (!file_exists(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'conf.php')) {
 require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'conf.php'; // Include configuration file
 require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . "Includes/dbConnection.php";
 // Directories to search for class files
-$directories = ["Forms", "Layouts", "Globals", "Proc", "Fncs"];
+$directories = ["Forms", "Layouts", "Globals", "Proc"];
 
 // Autoload classes from specified directories
 spl_autoload_register(function ($className) use ($directories) {
@@ -31,10 +30,18 @@ $ObjSendMail = new SendMail();
 $ObjForm = new forms();
 $ObjLayout = new layouts();
 
-$ObjAuth = new Auth($conf);
+$ObjAuth = new Auth();
 $ObjFncs = new fncs();
 
+$ObjAuth->signup();
+$ObjAuth->verify_code();
+$ObjAuth->forgot_password();
+$ObjAuth->change_password();
+$ObjAuth->signin();
+$ObjAuth->signout();
 
-$ObjAuth->signup($conf, $ObjFncs, $lang, $ObjSendMail, $SQL);
-$ObjAuth->verify_code($conf, $ObjFncs, $lang, $ObjSendMail, $SQL);
-$ObjAuth->forgot_password($conf, $ObjFncs, $lang, $ObjSendMail, $SQL);
+// All files that must verify user is logged in
+$protected_files = ['dashboard.php'];
+if (in_array(basename($_SERVER['PHP_SELF']), $protected_files)) {
+    $ObjFncs->checksignin();
+}

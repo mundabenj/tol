@@ -18,4 +18,25 @@ class fncs{
         }
         return null;
     }
+
+    // Function to redirect home page after signin
+    public function home_url(){
+        global $conf;
+        if(!isset($_SESSION['consort']) || $_SESSION['consort'] !== true) {
+                $home_url = $conf['site_url']; // Redirect to signin page if not logged in
+            }else{
+                $home_url = 'dashboard.php'; // Redirect to dashboard if logged in
+            }
+        return $home_url;
+    }
+
+    // Function to ensure user is signed in
+    public function checksignin() {
+        global $conf;
+        if (!isset($_SESSION["consort"]) || $_SESSION["consort"] !== true) {
+            $this->setMsg('msg', 'User must signin.', 'warning');
+            header("Location: " . $conf['site_url'] . "signin.php");
+            exit ();
+        }
+    }
 }
